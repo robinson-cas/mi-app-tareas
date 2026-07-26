@@ -6,9 +6,10 @@ import { HabitoHoy } from "@/types";
 interface HabitListProps {
   habitos: HabitoHoy[];
   onToggle: (habito: HabitoHoy) => void;
+  procesandoIds?: Set<string>;
 }
 
-export default function HabitList({ habitos, onToggle }: HabitListProps) {
+export default function HabitList({ habitos, onToggle, procesandoIds }: HabitListProps) {
   const diaHoy = new Date().toLocaleDateString("es-ES", { weekday: "long" });
 
   if (habitos.length === 0) {
@@ -76,7 +77,8 @@ export default function HabitList({ habitos, onToggle }: HabitListProps) {
                 <td className="px-4 py-4">
                   <button
                     onClick={() => onToggle(habito)}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                    disabled={procesandoIds?.has(habito.id_habito)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-wait ${
                       habito.completado
                         ? "bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-600"
                         : "bg-blue-600 text-white hover:bg-blue-700"

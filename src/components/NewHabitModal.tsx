@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Area } from "@/types";
 
@@ -37,6 +37,12 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
   // Area form state
   const [areaNombre, setAreaNombre] = useState("");
   const [areaColor, setAreaColor] = useState(COLORES[0]);
+
+  useEffect(() => {
+    if (!areas.some((a) => a.id_area === idArea)) {
+      setIdArea(areas[0]?.id_area || "");
+    }
+  }, [areas, idArea]);
 
   const toggleDia = (dia: number) => {
     setDiasSeleccionados((prev) =>
@@ -97,6 +103,25 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
     setTab("habito");
   };
 
+  const eliminarArea = async (id: string) => {
+    if (!confirm("¿Eliminar esta área? También se eliminarán sus hábitos y registros asociados.")) {
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    const { error: err } = await supabase.from("areas").delete().eq("id_area", id);
+
+    if (err) {
+      setError("Error al eliminar el área.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    onSuccess();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -138,7 +163,7 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   placeholder="Ej: Entrenar 45 min"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -152,7 +177,7 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
                   <select
                     value={idArea}
                     onChange={(e) => setIdArea(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {areas.map((a) => (
                       <option key={a.id_area} value={a.id_area}>
@@ -171,7 +196,7 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
                   onChange={(e) => setPuntos(Math.max(1, Number(e.target.value)))}
                   min={1}
                   max={100}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -210,6 +235,37 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
             </>
           ) : (
             <>
+              {areas.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                    Áreas existentes
+                  </label>
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                    {areas.map((a) => (
+                      <div
+                        key={a.id_area}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: a.color }}
+                          />
+                          <span className="text-sm text-gray-700">{a.nombre}</span>
+                        </div>
+                        <button
+                          onClick={() => eliminarArea(a.id_area)}
+                          disabled={loading}
+                          className="text-gray-300 hover:text-red-500 disabled:opacity-50 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1">
                   Nombre del área
@@ -219,7 +275,7 @@ export default function NewHabitModal({ areas, onClose, onSuccess }: NewHabitMod
                   value={areaNombre}
                   onChange={(e) => setAreaNombre(e.target.value)}
                   placeholder="Ej: Salud, Trabajo, Finanzas..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
