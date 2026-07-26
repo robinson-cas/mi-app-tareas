@@ -86,8 +86,10 @@ export default function Home() {
       .lte("fecha", weekEnd)
       .eq("completado", true);
 
+    type HabitoConMeta = Pick<Habito, "id_habito" | "id_area" | "puntos" | "areas" | "dias_habito">;
+
     const metaPorArea: Record<string, { nombre: string; color: string; meta: number }> = {};
-    ((todosHabitos as Habito[]) || []).forEach((h) => {
+    ((todosHabitos as unknown as HabitoConMeta[]) || []).forEach((h) => {
       const areaId = h.id_area;
       if (!metaPorArea[areaId]) {
         metaPorArea[areaId] = {
@@ -101,7 +103,7 @@ export default function Home() {
 
     const ganadoPorArea: Record<string, number> = {};
     (registrosSemana || []).forEach((r) => {
-      const habito = (todosHabitos as Habito[])?.find((h) => h.id_habito === r.id_habito);
+      const habito = (todosHabitos as unknown as HabitoConMeta[])?.find((h) => h.id_habito === r.id_habito);
       if (habito) {
         ganadoPorArea[habito.id_area] = (ganadoPorArea[habito.id_area] || 0) + r.puntos_obtenidos;
       }
